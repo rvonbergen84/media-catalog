@@ -8,10 +8,10 @@ import {
   SortField,
   ViewMode,
 } from "@/lib/types";
-import { loadItems, saveItems } from "@/lib/store";
 
 export function useMediaLibrary() {
   const [items, setItems] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [sortField, setSortField] = useState<SortField>("year");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -22,34 +22,76 @@ export function useMediaLibrary() {
     search: "",
   });
 
+  // Fetch all items from the database on mount
   useEffect(() => {
-    setItems(loadItems());
-  }, []);
-
-  const persist = useCallback((next: MediaItem[]) => {
-    setItems(next);
-    saveItems(next);
+    fetch("/api/media")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setItems(data);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   const addItem = useCallback(
-    (item: MediaItem) => {
-      persist([...items, item]);
+    async (item: MediaItem) => {
+      setItems((prev) => [...prev, item]);
+      try {
+        const res = await fetch("/api/media", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(item),
+        });
+        if (!res.ok) {
+          // Revert on failure
+          setItems((prev) => prev.filter((i) => i.id !== item.id));
+          console.error("Failed to save item");
+        }
+      } catch {
+        setItems((prev) => prev.filter((i) => i.id !== item.id));
+      }
     },
-    [items, persist]
+    []
   );
 
   const updateItem = useCallback(
-    (updated: MediaItem) => {
-      persist(items.map((i) => (i.id === updated.id ? updated : i)));
+    async (updated: MediaItem) => {
+      setItems((prev) =>
+        prev.map((i) => (i.id === updated.id ? updated : i))
+      );
+      try {
+        const res = await fetch("/api/media", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updated),
+        });
+        if (!res.ok) console.error("Failed to update item");
+      } catch {
+        console.error("Failed to update item");
+      }
     },
-    [items, persist]
+    []
   );
 
   const deleteItem = useCallback(
-    (id: string) => {
-      persist(items.filter((i) => i.id !== id));
+    async (id: string) => {
+      const prev = items;
+      setItems((current) => current.filter((i) => i.id !== id));
+      try {
+        const res = await fetch("/api/media", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id }),
+        });
+        if (!res.ok) {
+          setItems(prev);
+          console.error("Failed to delete item");
+        }
+      } catch {
+        setItems(prev);
+      }
     },
-    [items, persist]
+    [items]
   );
 
   const genres = useMemo(() => {
@@ -92,6 +134,7 @@ export function useMediaLibrary() {
   return {
     items: filteredItems,
     allItems: items,
+    loading,
     viewMode,
     setViewMode,
     sortField,
