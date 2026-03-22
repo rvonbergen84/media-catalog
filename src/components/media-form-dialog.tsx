@@ -426,7 +426,7 @@ export function MediaFormDialog({ open, onOpenChange, onSave, onDelete, editItem
               {/* Genre */}
               <div className="space-y-1.5">
                 <Label>Genre</Label>
-                <Select value={genre} onValueChange={setGenre}>
+                <Select value={genre} onValueChange={(v) => setGenre(v ?? "")}>
                   <SelectTrigger className="w-full">
                     <span>{genre || "Select genre"}</span>
                   </SelectTrigger>

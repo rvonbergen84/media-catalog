@@ -86,7 +86,7 @@ export function Toolbar({
       <Select
         value={filter.genre || "all"}
         onValueChange={(v) =>
-          onFilterChange({ ...filter, genre: v === "all" ? "" : v })
+          onFilterChange({ ...filter, genre: v === "all" ? "" : v ?? "" })
         }
       >
         <SelectTrigger className="w-[150px] text-sm">

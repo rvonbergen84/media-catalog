@@ -159,7 +159,7 @@ export default function Home() {
               <Select
                 value={lib.filter.genre || "all"}
                 onValueChange={(v) =>
-                  lib.setFilter({ ...lib.filter, genre: v === "all" ? "" : v })
+                  lib.setFilter({ ...lib.filter, genre: v === "all" ? "" : v ?? "" })
                 }
               >
                 <SelectTrigger className="w-[150px] text-sm font-mono">
