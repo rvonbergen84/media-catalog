@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { FilterState, MediaType } from "@/lib/types";
-import { Moon, Plus, Sun } from "lucide-react";
+import { LogOut, Moon, Plus, Sun } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 interface Props {
   filter: FilterState;
@@ -64,6 +65,15 @@ export function NavBar({
             aria-label="Toggle dark mode"
           >
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => signOut()}
+            aria-label="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
